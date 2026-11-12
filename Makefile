@@ -64,7 +64,7 @@ down: ## Destroy containers
 
 clear:
 	make down
-	rm -rf bin composer.json composer.lock config LICENSE src symfony.lock tmp/ var vendor/ .env || true
+	rm -rf bin composer.json composer.lock config LICENSE src symfony.lock  var vendor/ .env || true
 	find ./public -type f ! -name '.gitkeep' -delete || true
 	find ./public/* -type d -delete || true
 	find ./docker/nginx/ssl/* -type f ! -name '.gitkeep' -delete || true
