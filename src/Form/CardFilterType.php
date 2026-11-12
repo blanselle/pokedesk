@@ -4,35 +4,18 @@ namespace App\Form;
 
 use App\Admin\CardFilter;
 use App\Entity\CardStatus;
-use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
-use Symfony\Component\Form\Extension\Core\Type\SearchType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-final class CardFilterType extends AbstractType
+final class CardFilterType extends CardCriteriaType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        parent::buildForm($builder, $options);
+
         $builder
-            ->add('q', SearchType::class, ['label' => 'Nom ou identifiant', 'required' => false])
-            ->add('language', ChoiceType::class, [
-                'label' => 'Langue',
-                'required' => false,
-                'placeholder' => 'Toutes',
-                'choices' => array_combine($options['languages'], $options['languages']),
-            ])
-            ->add('extension', TextType::class, ['label' => 'Extension', 'required' => false, 'attr' => ['placeholder' => 'base1, Jungle…']])
-            ->add('number', TextType::class, ['label' => 'Numéro', 'required' => false])
-            ->add('rarity', ChoiceType::class, [
-                'label' => 'Rareté',
-                'required' => false,
-                'placeholder' => 'Toutes',
-                'choices' => array_combine($options['rarities'], $options['rarities']),
-            ])
             ->add('status', EnumType::class, [
                 'label' => 'Statut',
                 'required' => false,
@@ -46,21 +29,7 @@ final class CardFilterType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults([
-            'data_class' => CardFilter::class,
-            'method' => 'GET',
-            'csrf_protection' => false,
-            'allow_extra_fields' => true,
-            'languages' => [],
-            'rarities' => [],
-        ]);
-        $resolver->setAllowedTypes('languages', 'string[]');
-        $resolver->setAllowedTypes('rarities', 'string[]');
-    }
-
-    // No prefix: plain, shareable query parameters such as ?q=pikachu&language=fr.
-    public function getBlockPrefix(): string
-    {
-        return '';
+        parent::configureOptions($resolver);
+        $resolver->setDefault('data_class', CardFilter::class);
     }
 }

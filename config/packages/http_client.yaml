@@ -10,3 +10,6 @@ framework:
                 timeout: 20
                 retry_failed:
                     max_retries: 3
+            vision.client:
+                base_uri: '%env(VISION_URL)%'
+                timeout: 120

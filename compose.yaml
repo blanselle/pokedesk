@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   db:
-    image: postgres:18
+    image: pgvector/pgvector:pg18
     container_name: db
     environment:
       - POSTGRES_DB=${DB_DATABASE:-database}
@@ -55,9 +55,32 @@ services:
       app.local:
         aliases:
           - pokedesk-mail
+  vision:
+    image: pokedesk-vision
+    build:
+      context: ./vision
+    container_name: vision
+    environment:
+      - VISION_MODEL=${VISION_MODEL:-clip-b32}
+      - THREADS=${VISION_THREADS:-14}
+      - HF_HOME=/models
+    volumes:
+      - ./vision:/app
+      - vision-models:/models
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks:
+      app.local:
+        aliases:
+          - pokedesk-vision
 
 volumes:
   postgres-data: ~
+  vision-models: ~
 
 networks:
   app.local:

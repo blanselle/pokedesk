@@ -15,6 +15,8 @@
                 <a class="navbar-brand" href="{{ path('app_home') }}">Pokédesk</a>
                 <ul class="navbar-nav ms-auto align-items-center">
                     {% if is_granted('IS_AUTHENTICATED') %}
+                        <li class="nav-item"><a class="nav-link" href="{{ path('app_scan') }}">Scanner</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ path('app_stock') }}">Mon stock</a></li>
                         {% if is_granted('ROLE_ADMIN') %}
                             <li class="nav-item"><a class="nav-link" href="{{ path('admin_cards') }}">Administration</a></li>
                         {% endif %}

@@ -9,8 +9,6 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
-use function Symfony\Component\String\u;
-
 /**
  * @extends ServiceEntityRepository<Card>
  */
@@ -31,6 +29,31 @@ class CardRepository extends ServiceEntityRepository
         $cards = [];
         foreach ($this->findBy(['language' => $language, 'tcgdexId' => $tcgdexIds]) as $card) {
             $cards[$card->getTcgdexId()] = $card;
+        }
+
+        return $cards;
+    }
+
+    /**
+     * @param list<int> $ids
+     *
+     * @return array<int, Card> indexed by id
+     */
+    public function findByIdsIndexed(array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        $cards = [];
+        foreach ($this->createQueryBuilder('c')
+            ->addSelect('s')
+            ->join('c.set', 's')
+            ->where('c.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult() as $card) {
+            $cards[$card->getId()] = $card;
         }
 
         return $cards;
@@ -66,28 +89,7 @@ class CardRepository extends ServiceEntityRepository
             ->setFirstResult(($page - 1) * $perPage)
             ->setMaxResults($perPage);
 
-        if (null !== $term = $this->normalize($filter->q)) {
-            $qb->andWhere('LOWER(UNACCENT(c.name)) LIKE :q OR LOWER(c.tcgdexId) LIKE :q')
-                ->setParameter('q', '%'.addcslashes($term, '%_\\').'%');
-        }
-
-        if (null !== $language = $this->normalize($filter->language)) {
-            $qb->andWhere('c.language = :language')->setParameter('language', $language);
-        }
-
-        if (null !== $extension = $this->normalize($filter->extension)) {
-            $qb->andWhere('(LOWER(s.tcgdexId) = :extensionId OR LOWER(UNACCENT(s.name)) LIKE :extensionName)')
-                ->setParameter('extensionId', $extension)
-                ->setParameter('extensionName', '%'.addcslashes($extension, '%_\\').'%');
-        }
-
-        if (null !== $number = $this->normalize($filter->number)) {
-            $qb->andWhere('LOWER(c.localId) = :number')->setParameter('number', $number);
-        }
-
-        if (null !== $filter->rarity && '' !== $filter->rarity) {
-            $qb->andWhere('c.rarity = :rarity')->setParameter('rarity', $filter->rarity);
-        }
+        $filter->apply($qb, 'c', 's');
 
         if (null !== $filter->status) {
             $qb->andWhere('c.status = :status')->setParameter('status', $filter->status);
@@ -131,11 +133,9 @@ class CardRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('c')->select('DISTINCT c.rarity')->where('c.rarity IS NOT NULL')->orderBy('c.rarity')->getQuery()->getSingleColumnResult();
     }
 
-    // Lower-case, accent-free and trimmed, to match LOWER(UNACCENT(column)).
-    private function normalize(?string $value): ?string
+    /** @return list<string> */
+    public function distinctCategories(): array
     {
-        $value = u((string) $value)->trim()->ascii()->lower()->toString();
-
-        return '' === $value ? null : $value;
+        return $this->createQueryBuilder('c')->select('DISTINCT c.category')->where('c.category IS NOT NULL')->orderBy('c.category')->getQuery()->getSingleColumnResult();
     }
 }

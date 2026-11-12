@@ -10,9 +10,12 @@ parameters:
     # Persistent data (not a cache), so kept out of the per-environment share dir.
     app.catalog_images_dir: '%kernel.project_dir%/var/catalog/images'
 
-when@test:
-    parameters:
-        app.catalog_images_dir: '%kernel.project_dir%/var/catalog-test/images'
+    # Must match VISION_MODEL of the vision service: vectors of different models are never compared.
+    app.vision_model: 'clip-b32'
+
+    # Scan proposals: how many cards to propose, and the similarity under which nothing is proposed (to calibrate on real photos).
+    app.scan.candidates: 5
+    app.scan.min_similarity: 0.70
 
 services:
     # default configuration for services in *this* file
@@ -27,3 +30,15 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+when@test:
+    parameters:
+        app.catalog_images_dir: '%kernel.project_dir%/var/catalog-test/images'
+
+    services:
+        # Tests never call the real vision service.
+        App\Tests\Support\FakeVision:
+            public: true
+        App\Vision\Vision:
+            alias: App\Tests\Support\FakeVision
+            public: true

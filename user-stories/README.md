@@ -24,6 +24,45 @@ Application de gestion de stock de cartes Pokémon. L'utilisateur envoie une pho
 
 Dépendances : 2 requiert 0, 1 et 3 (le stock) ; 3 requiert 0 et 1 ; 4 et 5 requièrent 3 ; 6 requiert 0 et 1.
 
+## État d'avancement
+
+États : **Fait**, **Partiel** (le reste est indiqué), **À faire**.
+
+| Story | État | Remarque |
+|-------|------|----------|
+| US-0.1 à 0.8, 0.10 | Fait | |
+| US-0.9 | À faire | Gestion du compte |
+| US-1.1 | Partiel | La commande `app:catalog:import` s'exécute au premier plan, pas en arrière-plan ; les cartes numériques `tcgp` sont exclues |
+| US-1.2 | Fait | |
+| US-1.3 | Partiel | Calcul par la commande `app:catalog:embed`, lancée à la main après l'import ; recherche exacte sans index |
+| US-1.4 | Partiel | Les prix sont conservés dans le détail brut de la carte, sans champs dédiés |
+| US-1.5 | À faire | |
+| US-2.1 | Partiel | Consignes affichées sur l'écran d'envoi ; la limite de 20 cartes n'est pas contrôlée |
+| US-2.2 | Partiel | JPEG, PNG, WebP jusqu'à 40 Mo, langue mémorisée, EXIF non conservé ; HEIC et résolution minimale non gérés |
+| US-2.3 | À faire | |
+| US-2.4 | Partiel | Détecteur validé sur 2 photos seulement ; carte à l'envers gérée ; dos de carte non traité |
+| US-2.5 | Fait | Seuil 0,70 provisoire |
+| US-2.6 | Partiel | Message en cas de service indisponible ; pas de progression ni de délai maximal |
+| US-2.7 | Partiel | Pas de raccourcis clavier |
+| US-2.8, 2.9 | Fait | |
+| US-2.10 | Fait | Résumé simplifié : cartes ajoutées et références, sans distinguer lignes créées et augmentées |
+| US-2.11 | Partiel | Cache de 1 h ; un nouveau scan remplace le précédent sans avertissement ; pas de purge explicite à la déconnexion |
+| US-2.12 | Partiel | Taille maximale faite ; pas de limite de cartes ni d'envois par période |
+| US-2.13 | À faire | |
+| US-2.14 | Fait | CLIP ViT-B/32 retenu ; les scripts de mesure ont été supprimés |
+| US-3.1 | Fait | En-tête de synthèse : totaux et répartition par langue, extension, rareté et catégorie |
+| US-3.2, 3.3 | Fait | |
+| US-3.4, 3.5 | À faire | |
+| US-4.1 | Fait | |
+| US-4.2 | Partiel | Langue, extension, numéro, rareté, catégorie et quantité min/max, avec nombre de résultats et réinitialisation ; une seule valeur par filtre |
+| US-4.3 | À faire | |
+| US-4.4 | Partiel | Cases à cocher pour la suppression ; ni page entière ni tous les résultats |
+| US-5.x | À faire | |
+| US-6.1, 6.2 | Fait | |
+| US-6.3 | Partiel | Pas de filtre « embedding manquant » |
+| US-6.4 | Partiel | État de l'embedding non affiché ; les prix de référence le sont |
+| US-6.5, 6.6 | À faire | |
+
 ## Flux principal
 
 1. L'utilisateur choisit la langue des cartes puis envoie une image contenant 1 à n cartes.
@@ -37,10 +76,10 @@ Le scan ne dure que tant que l'utilisateur reste dans l'application : s'il quitt
 ## Architecture
 
 - **Symfony + Twig** : backend et frontend. Symfony est le maître de la donnée et le seul écrivain en base.
-- **Service Python** : prétraitement d'image (OpenCV) et vectorisation (DINOv2, modèle et taille à valider par le benchmark US-2.14). Deux responsabilités :
-  - *Détection* : une image contenant 1 à n cartes donne les cartes détectées, découpées, redressées, redimensionnées et normalisées (suppression des marges incluse).
-  - *Vectorisation* : une carte normalisée donne un vecteur. On ne vectorise jamais une image contenant plusieurs cartes : elle est d'abord découpée.
-- **PostgreSQL + pgvector** : stockage des vecteurs et recherche des plus proches voisins, exécutée par Symfony.
+- **Service Python** (FastAPI, sur CPU) : prétraitement d'image (OpenCV) et vectorisation (CLIP ViT-B/32, vecteurs de 512 dimensions, retenu face à DINOv2 small et base). Deux responsabilités :
+  - *Détection* : une image contenant 1 à n cartes donne les cartes détectées, découpées, redressées, redimensionnées et normalisées (suppression des marges incluse). Les cartes qui se touchent sont séparées selon le format d'une carte (63/88).
+  - *Vectorisation* : une carte normalisée donne un vecteur. On ne vectorise jamais une image contenant plusieurs cartes : elle est d'abord découpée. Chaque découpe est vectorisée dans son orientation d'origine et retournée de 180° (carte posée à l'envers).
+- **PostgreSQL + pgvector** : stockage des vecteurs et recherche des plus proches voisins, exécutée par Symfony. La recherche est exacte (distance cosinus, sans index) : elle suffit pour les quelque 35 000 vecteurs du catalogue FR + EN.
 - Le catalogue et les photos passent par le même prétraitement et le même modèle, tous deux portés par le service Python.
 - Le service Python n'a aucun accès à la base : il reçoit une image et renvoie des résultats (découpes, vecteurs). Symfony écrit les vecteurs et interroge pgvector.
 
@@ -53,7 +92,10 @@ Le scan ne dure que tant que l'utilisateur reste dans l'application : s'il quitt
 - Les doublons d'une photo sont regroupés après validation de l'utilisateur, par référence choisie.
 - Une carte non reconnue ne peut pas être ajoutée au stock. Le traitement de ce cas est reporté.
 - Le stock n'est jamais modifié avant la validation finale.
-- Aucun scan n'est persisté : pas de statut, pas de reprise, pas d'annulation. Les images envoyées et découpées sont jetées à la fin du scan.
+- Aucun scan n'est persisté en base : pas de statut, pas de reprise, pas d'annulation. La photo envoyée n'est jamais enregistrée ; seules les découpes et les choix en cours vivent dans un cache serveur (1 heure d'inactivité au plus) et sont jetés à la fin du scan.
+- MVP de la reconnaissance : le moteur propose jusqu'à 5 candidats par carte ; s'il y en a plusieurs, l'utilisateur tranche à la main, et il peut indiquer qu'aucun ne correspond.
+- Une photo peut peser jusqu'à 40 Mo (photos de smartphone en haute résolution).
+- L'utilisateur peut corriger son stock : ajuster la quantité d'une ligne (descendre à 0 supprime la ligne après confirmation) et supprimer plusieurs lignes à la fois, toujours après confirmation.
 - Une carte qui n'est plus renvoyée par l'API TCGdex est marquée obsolète, jamais supprimée.
 - Les prix de revente issus de l'API TCGdex sont conservés en base ; ils ne sont pas exposés aux utilisateurs pour l'instant.
 - L'interface est en français ; le nom d'une carte est affiché dans la langue de la carte.
@@ -84,17 +126,17 @@ Reporté :
 ## Principes transverses
 
 - **Droits d'images** : les droits de réutilisation des illustrations du catalogue doivent être vérifiés avant toute diffusion commerciale.
-- **Objectif de reconnaissance** : la bonne référence figure dans les candidats proposés dans la grande majorité des cas (seuil à fixer après benchmark).
+- **Objectif de reconnaissance** : la bonne référence figure dans les candidats proposés dans la grande majorité des cas (seuil provisoire à calibrer sur des photos réelles).
 - **Données privées** : le stock et les images temporaires d'un scan ne sont accessibles qu'à leur propriétaire.
 - **Priorité MoSCoW** : **M**ust / **S**hould / **C**ould.
 - **Identifiants** : `US-<epic>.<n>`. Les stories décrivent le comportement attendu, pas la technologie.
 
 ## Questions ouvertes
 
-1. Modèle de vectorisation et dimension : DINOv2 (small, base ou large) à comparer avec une alternative lors du benchmark.
+1. ~~Modèle de vectorisation et dimension~~ : tranché, CLIP ViT-B/32 en 512 dimensions.
 2. Durée de validité des liens de confirmation d'email (1 heure par défaut).
-3. Langues du catalogue importées : toutes celles de TCGdex, ou une liste restreinte (FR, EN, JP) ?
-4. Seuil de similarité en dessous duquel aucun candidat n'est proposé : à calibrer par benchmark.
-5. Nombre maximal de cartes par photo (20 au départ) : bloquant ou simple avertissement au-delà ?
-6. Durée d'expiration des données temporaires d'un scan après inactivité.
-7. Objectifs de performance (durée de traitement d'une photo de 20 cartes, taille de stock visée) et matériel du service Python (CPU ou GPU) : à fixer après le benchmark.
+3. ~~Langues du catalogue importées~~ : tranché pour l'instant, FR et EN (paramétrable à l'import) ; JP et les autres langues restent à décider.
+4. Seuil de similarité en dessous duquel aucun candidat n'est proposé : 0,70 à titre provisoire, à calibrer sur des photos réelles.
+5. Nombre maximal de cartes par photo (20 au départ) : bloquant ou simple avertissement au-delà ? Non contrôlé pour l'instant.
+6. ~~Durée d'expiration des données temporaires d'un scan~~ : tranché, 1 heure d'inactivité.
+7. Objectifs de performance : sur CPU (20 cœurs), la détection et la vectorisation d'une photo de 1 à 4 cartes prennent environ 0,5 s ; une photo de 20 cartes et la taille de stock visée restent à mesurer.

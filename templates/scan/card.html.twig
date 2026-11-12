@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Carte {{ step }} sur {{ steps }}{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h1 class="h4 mb-0">Carte {{ step }} sur {{ steps }}</h1>
+        <a href="{{ path('app_scan_summary', {token: token}) }}" class="small">Aller au récapitulatif</a>
+    </div>
+    <div class="progress mb-4" role="progressbar" aria-valuenow="{{ step }}" aria-valuemin="1" aria-valuemax="{{ steps }}" style="height: .4rem">
+        <div class="progress-bar" style="width: {{ (step / steps * 100)|round }}%"></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4 col-lg-3">
+            <p class="small text-body-secondary mb-2">Votre carte</p>
+            <img src="{{ path('app_scan_crop', {token: token, position: position}) }}" alt="Carte scannée n° {{ step }}" class="img-fluid rounded shadow{{ scanned.upsideDown ? ' upside-down' : '' }}">
+        </div>
+
+        <div class="col-md-8 col-lg-9">
+            <p class="small text-body-secondary mb-2">Laquelle de ces cartes est la vôtre ?</p>
+
+            {{ form_start(form) }}
+                {{ form_errors(form.candidate) }}
+
+                <div class="row row-cols-2 row-cols-lg-3 g-3 mb-4">
+                    {% for choice in form.candidate %}
+                        {% set candidate = candidates[choice.vars.value]|default(null) %}
+                        {% if candidate %}
+                            {% set card = candidate.card %}
+                            <div class="col">
+                                <input type="radio" class="btn-check" name="{{ choice.vars.full_name }}" id="{{ choice.vars.id }}" value="{{ choice.vars.value }}"{{ choice.vars.checked ? ' checked' : '' }} autocomplete="off">
+                                <label for="{{ choice.vars.id }}" class="card h-100 candidate-tile">
+                                    {% if card.imagePath %}
+                                        <div class="ratio card-ratio">
+                                            <img src="{{ path('card_image', {id: card.id}) }}" alt="{{ card.name }}" class="card-img-top" loading="lazy">
+                                        </div>
+                                    {% else %}
+                                        <div class="ratio card-ratio"><div class="d-flex align-items-center justify-content-center bg-body-secondary text-body-secondary small">Sans image</div></div>
+                                    {% endif %}
+                                    <div class="card-body p-2">
+                                        <div class="fw-semibold text-truncate" title="{{ card.name }}">{{ card.name }}</div>
+                                        <div class="small text-body-secondary text-truncate" title="{{ card.set.name }}">{{ card.set.name }} · n° {{ card.localId }}</div>
+                                        <div class="mt-1 d-flex flex-wrap gap-1">
+                                            {% if card.rarity %}<span class="badge text-bg-light border">{{ card.rarity }}</span>{% endif %}
+                                            <span class="badge text-bg-light border" title="Ressemblance avec votre carte">{{ (candidate.similarity * 100)|round }} %</span>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    {{ form_widget(form.validate, {label: 'Valider cette carte', attr: {class: 'btn btn-primary'}}) }}
+                    {{ form_widget(form.none, {label: 'Aucune ne correspond', attr: {class: 'btn btn-outline-secondary'}}) }}
+                </div>
+                {% do form.candidate.setRendered %}
+                {{ form_rest(form) }}
+            {{ form_end(form, {render_rest: false}) }}
+
+            <div class="d-flex justify-content-between mt-4 small">
+                {% if previous is not null %}<a href="{{ path('app_scan_card', {token: token, position: previous}) }}">← Carte précédente</a>{% else %}<span></span>{% endif %}
+                {% if next is not null %}<a href="{{ path('app_scan_card', {token: token, position: next}) }}">Carte suivante →</a>{% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

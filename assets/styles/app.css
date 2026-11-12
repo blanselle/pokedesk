@@ -15,6 +15,27 @@
     cursor: zoom-in;
 }
 
+/* Radio inputs rendered as selectable card tiles. */
+.candidate-tile {
+    cursor: pointer;
+    border-width: 2px;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-check:checked + .candidate-tile {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.3);
+}
+
+.btn-check:focus-visible + .candidate-tile {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 2px;
+}
+
+.upside-down {
+    transform: rotate(180deg);
+}
+
 .card-hover:hover,
 .card-hover:focus-visible {
     transform: translateY(-3px);

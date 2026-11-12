@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Récapitulatif du scan{% endblock %}
+
+{% block body %}
+    <h1 class="h4 mb-1">Récapitulatif du scan</h1>
+    <p class="text-body-secondary">
+        {{ total }} carte{{ total > 1 ? 's' : '' }} détectée{{ total > 1 ? 's' : '' }},
+        {{ validated|length }} référence{{ validated|length > 1 ? 's' : '' }} à ajouter,
+        {{ rejected|length }} non ajoutée{{ rejected|length > 1 ? 's' : '' }}.
+    </p>
+
+    {% if rejected is not empty %}
+        <div class="alert alert-warning">
+            <h2 class="h6">Ces cartes ne seront pas ajoutées à votre stock</h2>
+            <div class="d-flex flex-wrap gap-3 mt-3">
+                {% for item in rejected %}
+                    <div class="text-center" style="width: 7rem">
+                        <img src="{{ path('app_scan_crop', {token: token, position: item.position}) }}" alt="Carte non ajoutée" class="img-fluid rounded border mb-1">
+                        <div class="small">
+                            {% if item.reason == 'unrecognised' %}Non reconnue
+                            {% elseif item.reason == 'skipped' %}Passée
+                            {% else %}À vérifier
+                            {% endif %}
+                        </div>
+                        {% if item.reason != 'unrecognised' %}
+                            <a class="small" href="{{ path('app_scan_card', {token: token, position: item.position}) }}">Revoir</a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {{ form_start(form) }}
+        {% if validated is empty %}
+            <div class="alert alert-info">Aucune carte validée pour l'instant.</div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table align-middle bg-body">
+                    <thead>
+                        <tr>
+                            <th scope="col"></th>
+                            <th scope="col">Carte</th>
+                            <th scope="col">Langue</th>
+                            <th scope="col" style="width: 8rem">Quantité</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for card in validated|filter(c => c is not null) %}
+                            <tr>
+                                <td style="width: 4rem">
+                                    {% if card.imagePath %}<img src="{{ path('card_image', {id: card.id}) }}" alt="" width="44" class="rounded">{% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">{{ card.name }}</div>
+                                    <div class="small text-body-secondary">{{ card.set.name }} · n° {{ card.localId }}</div>
+                                </td>
+                                <td class="text-uppercase">{{ card.language }}</td>
+                                <td>
+                                    {{ form_widget(form['quantity_' ~ card.id]) }}
+                                    {{ form_errors(form['quantity_' ~ card.id]) }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+
+        <div class="d-flex flex-wrap gap-2">
+            {{ form_widget(form.add, {label: 'Ajouter à mon stock', attr: {class: 'btn btn-primary'}, disabled: validated is empty}) }}
+            <a href="{{ path('app_scan') }}" class="btn btn-outline-secondary">Recommencer un scan</a>
+        </div>
+        <p class="small text-body-secondary mt-2">Une quantité à 0 retire la ligne de l'ajout.</p>
+    {{ form_end(form) }}
+{% endblock %}

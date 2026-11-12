@@ -20,11 +20,7 @@
     <div class="card mb-4">
         <div class="card-body">
             {{ form_start(form, {attr: {class: 'row g-3 align-items-end'}}) }}
-                <div class="col-md-4">{{ form_row(form.q) }}</div>
-                <div class="col-md-2">{{ form_row(form.language) }}</div>
-                <div class="col-md-3">{{ form_row(form.extension) }}</div>
-                <div class="col-md-1">{{ form_row(form.number) }}</div>
-                <div class="col-md-2">{{ form_row(form.rarity) }}</div>
+                {% include '_card_criteria.html.twig' %}
                 <div class="col-md-2">{{ form_row(form.status) }}</div>
                 <div class="col-md-2">
                     <div class="mb-3">
@@ -54,6 +50,6 @@
     {% else %}
         {% include view == 'grid' ? 'admin/card/_grid.html.twig' : 'admin/card/_table.html.twig' %}
 
-        {% include 'admin/card/_pagination.html.twig' %}
+        {% include '_pagination.html.twig' with {route: 'admin_cards'} %}
     {% endif %}
 {% endblock %}

@@ -3,12 +3,11 @@
 namespace App\Controller\Admin;
 
 use App\Admin\CardFilter;
+use App\Catalog\CardImageResponder;
 use App\Entity\Card;
 use App\Form\CardFilterType;
 use App\Repository\CardRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -30,6 +29,7 @@ final class CardAdminController extends AbstractController
         $options = [
             'languages' => $cards->distinctLanguages(),
             'rarities' => $cards->distinctRarities(),
+            'categories' => $cards->distinctCategories(),
         ];
         $form = $this->createForm(CardFilterType::class, $filter, $options);
         $form->handleRequest($request);
@@ -85,20 +85,8 @@ final class CardAdminController extends AbstractController
 
     // Images live outside the public directory: they are served here, to administrators only.
     #[Route('/{id}/image', name: 'admin_card_image', requirements: ['id' => '\d+'])]
-    public function image(Card $card, #[Autowire('%app.catalog_images_dir%')] string $imagesDir): Response
+    public function image(Card $card, CardImageResponder $images): Response
     {
-        $root = realpath($imagesDir);
-        $path = null !== $card->getImagePath() && false !== $root ? realpath($root.'/'.$card->getImagePath()) : false;
-
-        if (false === $path || !str_starts_with($path, $root.\DIRECTORY_SEPARATOR) || !is_file($path)) {
-            throw $this->createNotFoundException('No image for this card.');
-        }
-
-        $response = new BinaryFileResponse($path);
-        $response->headers->set('Content-Type', 'image/webp');
-        $response->setPrivate();
-        $response->setMaxAge(86400);
-
-        return $response;
+        return $images->response($card);
     }
 }

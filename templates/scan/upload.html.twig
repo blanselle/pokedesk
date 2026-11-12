@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Scanner des cartes{% endblock %}
+
+{% block body %}
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <h1 class="h3 mb-3">Scanner des cartes</h1>
+
+            {% if form is null %}
+                <div class="alert alert-warning">Le catalogue n'est pas encore prêt pour la reconnaissance. Réessayez un peu plus tard.</div>
+            {% else %}
+                {{ form_start(form, {attr: {'data-loading': 'Analyse en cours…'}}) }}
+                    {{ form_row(form.language) }}
+                    {{ form_row(form.photo) }}
+
+                    <div id="scan-preview-box" class="mb-3 d-none">
+                        <img id="scan-preview" class="img-fluid rounded border" alt="Aperçu de la photo" style="max-height: 24rem">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <span class="spinner-border spinner-border-sm d-none me-2" aria-hidden="true"></span>
+                        <span data-label>Lancer la reconnaissance</span>
+                    </button>
+                {{ form_end(form) }}
+            {% endif %}
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h6">Pour de meilleurs résultats</h2>
+                    <ul class="small mb-0 ps-3">
+                        <li>Une photo peut contenir jusqu'à 20 cartes, toutes dans la <strong>même langue</strong>.</li>
+                        <li>Posez les cartes en grille, sans chevauchement, avec un petit espace entre elles et toutes dans le même sens.</li>
+                        <li>Utilisez une surface unie et contrastée, sans reflet marqué ni flash.</li>
+                        <li>Prenez la photo bien à plat, au-dessus des cartes, avec toutes les cartes entières dans le cadre.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

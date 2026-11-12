@@ -139,6 +139,7 @@ final class AdminCardTest extends WebTestCase
         yield 'extension by name' => ['extension=jungle', ['Évoli']];
         yield 'number' => ['number=25', ['Pikachu', 'Pikachu']];
         yield 'rarity' => ['rarity=Rare', ['Alakazam', 'Magneton']];
+        yield 'category' => ['category=Trainer', ['Évoli']];
         yield 'obsolete cards' => ['status=obsolete', ['Magneton']];
         yield 'missing image' => ['missingImage=1', ['Magneton', 'Pikachu', 'Évoli']];
         yield 'combined' => ['language=fr&number=25&q=pika', ['Pikachu']];
@@ -347,6 +348,7 @@ final class AdminCardTest extends WebTestCase
         $this->addCard('en', 'base1', 'Base Set', 'base1-25', '25', 'Pikachu', 'Common', 'en/base1/25.webp');
         $this->em->flush();
         $this->em->getConnection()->executeStatement("UPDATE card SET status = 'obsolete' WHERE tcgdex_id = 'base1-9'");
+        $this->em->getConnection()->executeStatement("UPDATE card SET category = 'Trainer' WHERE tcgdex_id = 'base2-51'");
         $this->em->clear();
     }
 

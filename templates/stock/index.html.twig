@@ -3,11 +3,118 @@
 {% block title %}Mon stock{% endblock %}
 
 {% block body %}
-    <h1 class="h3 mb-4">Mon stock</h1>
-
-    <div class="card">
-        <div class="card-body text-center py-5">
-            <p class="mb-0 text-body-secondary">Votre stock est vide. Le scan de cartes arrive bientôt.</p>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <h1 class="h3 mb-0">Mon stock</h1>
+        <div class="d-flex gap-2">
+            {% if lines > 0 %}
+                {{ form_widget(selection.delete, {attr: {form: 'stock-selection', class: 'btn btn-outline-danger'}}) }}
+            {% endif %}
+            <a href="{{ path('app_scan') }}" class="btn btn-primary">Scanner des cartes</a>
         </div>
     </div>
+
+    {# The line checkboxes belong to this form through their form attribute. #}
+    {{ form_start(selection, {attr: {id: 'stock-selection'}}) }}
+        {{ form_widget(selection._token) }}
+    {{ form_end(selection, {render_rest: false}) }}
+
+    {% if stock_lines == 0 %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <p class="mb-3 text-body-secondary">Votre stock est vide. Prenez en photo vos cartes pour les ajouter en quelques clics.</p>
+                <a href="{{ path('app_scan') }}" class="btn btn-primary">Scanner mes cartes</a>
+            </div>
+        </div>
+    {% else %}
+        <section aria-label="Résumé du stock" class="mb-4">
+            <div class="row g-3 mb-3" data-overview>
+                {% for figure in [
+                    {value: stock_copies, singular: 'carte', plural: 'cartes'},
+                    {value: stock_lines, singular: 'référence', plural: 'références'},
+                    {value: breakdowns.extension|length, singular: 'extension', plural: 'extensions'},
+                    {value: breakdowns.language|length, singular: 'langue', plural: 'langues'},
+                ] %}
+                    <div class="col-6 col-md-3">
+                        <div class="card h-100">
+                            <div class="card-body py-3">
+                                <div class="display-6 lh-1">{{ figure.value|number_format(0, ',', ' ') }}</div>
+                                <div class="small text-body-secondary mt-1">{{ figure.value > 1 ? figure.plural : figure.singular }}</div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6 col-xl-3">{% include 'stock/_breakdown.html.twig' with {title: 'Par langue', param: 'language', rows: breakdowns.language, filters: filters, empty_label: 'Non renseignée'} only %}</div>
+                <div class="col-md-6 col-xl-3">{% include 'stock/_breakdown.html.twig' with {title: 'Par extension', param: 'extension', rows: breakdowns.extension, filters: filters, empty_label: 'Non renseignée'} only %}</div>
+                <div class="col-md-6 col-xl-3">{% include 'stock/_breakdown.html.twig' with {title: 'Par rareté', param: 'rarity', rows: breakdowns.rarity, filters: filters, empty_label: 'Sans rareté'} only %}</div>
+                <div class="col-md-6 col-xl-3">{% include 'stock/_breakdown.html.twig' with {title: 'Par catégorie', param: 'category', rows: breakdowns.category, filters: filters, empty_label: 'Non renseignée'} only %}</div>
+            </div>
+        </section>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                {{ form_start(form, {attr: {class: 'row g-3 align-items-end'}}) }}
+                    {% include '_card_criteria.html.twig' %}
+                    <div class="col-md-2">{{ form_row(form.minQuantity) }}</div>
+                    <div class="col-md-2">{{ form_row(form.maxQuantity) }}</div>
+                    <div class="col-md-8 text-md-end">
+                        <div class="mb-3">
+                            <a href="{{ path('app_stock') }}" class="btn btn-outline-secondary">Réinitialiser</a>
+                            <button type="submit" class="btn btn-primary">Filtrer</button>
+                        </div>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+
+        {% if filtered %}
+            <p class="text-body-secondary" data-result-count>
+                {{ lines }} référence{{ lines > 1 ? 's' : '' }} ({{ copies }} carte{{ copies > 1 ? 's' : '' }}) correspondent à ces critères.
+            </p>
+        {% endif %}
+
+        {% if lines == 0 %}
+            <div class="alert alert-info">Aucune carte de votre stock ne correspond à ces critères.</div>
+        {% else %}
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-6 g-3 mb-4">
+                {% for item in items %}
+                    {% set card = item.card %}
+                    <div class="col">
+                        <div class="card h-100">
+                            <div class="ratio card-ratio position-relative">
+                                {% if card.imagePath %}
+                                    <img src="{{ path('card_image', {id: card.id}) }}" alt="{{ card.name }}" class="card-img-top" loading="lazy">
+                                {% else %}
+                                    <div class="d-flex align-items-center justify-content-center bg-body-secondary text-body-secondary small">Sans image</div>
+                                {% endif %}
+                            </div>
+                            <div class="position-absolute top-0 start-0 m-2 px-2 py-1 bg-body rounded border">
+                                <input type="checkbox" class="form-check-input m-0" name="{{ selection.ids.vars.full_name }}[]" value="{{ item.id }}" form="stock-selection" aria-label="Sélectionner {{ card.name }}">
+                            </div>
+                            <div class="card-body p-2">
+                                <div class="fw-semibold text-truncate" title="{{ card.name }}">{{ card.name }}</div>
+                                <div class="small text-body-secondary text-truncate" title="{{ card.set.name }}">{{ card.set.name }} · n° {{ card.localId }}</div>
+                                <span class="badge text-bg-light border text-uppercase mt-1">{{ card.language }}</span>
+                                {% if card.rarity %}<span class="badge text-bg-light border mt-1">{{ card.rarity }}</span>{% endif %}
+
+                                {% set quantity_form = quantity_forms[item.id] %}
+                                {{ form_start(quantity_form, {attr: {class: 'input-group input-group-sm mt-2'}}) }}
+                                    {{ form_widget(quantity_form.apply) }}
+                                    {{ form_widget(quantity_form.less) }}
+                                    {{ form_widget(quantity_form.quantity) }}
+                                    {{ form_widget(quantity_form.more) }}
+                                    {{ form_widget(quantity_form.previous, {type: 'hidden'}) }}
+                                    {{ form_widget(quantity_form._token) }}
+                                {{ form_end(quantity_form, {render_rest: false}) }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% include '_pagination.html.twig' with {route: 'app_stock'} %}
+        {% endif %}
+    {% endif %}
 {% endblock %}

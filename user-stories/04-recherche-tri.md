@@ -14,7 +14,8 @@ Critères d'acceptation :
 En tant qu'**utilisateur**, je veux combiner des filtres afin de retrouver un sous-ensemble de cartes.
 
 Critères d'acceptation :
-- Filtres : extension, numéro, rareté, langue, quantité (min/max).
+- Filtres : extension, numéro, rareté, catégorie, langue, quantité (min/max).
+- Les filtres de nom, langue, extension, numéro, rareté et catégorie sont communs à la liste du stock et à la liste d'administration du catalogue.
 - Plusieurs valeurs possibles pour extension, rareté et langue.
 - Les filtres se cumulent ; le nombre de résultats est affiché ; réinitialisation en un geste.
 

@@ -34,11 +34,11 @@ Critères d'acceptation :
 En tant qu'**opérateur**, je veux que chaque image du catalogue ait un embedding afin de permettre la recherche par similarité.
 
 Critères d'acceptation :
-- Le calcul suit l'import en arrière-plan.
+- Le calcul est lancé par une commande dédiée après l'import (à la main pour l'instant).
 - Chaque image est normalisée puis vectorisée une à une par le service Python, avec le même prétraitement et le même modèle que pour les photos utilisateur (cf. US-2.4).
 - Seul Symfony écrit les vecteurs en base.
 - Le modèle et sa version sont enregistrés avec le vecteur ; la dimension vient de la sortie réelle du modèle.
-- Les vecteurs sont indexés pour une recherche des plus proches voisins, filtrable par langue.
+- Les vecteurs permettent une recherche des plus proches voisins, filtrable par langue ; la recherche est exacte et sans index tant que le volume reste de l'ordre de quelques dizaines de milliers de vecteurs.
 - Seules les cartes sans embedding, ou dont le modèle a changé, sont recalculées.
 
 ## US-1.4 Conserver les prix de référence — S

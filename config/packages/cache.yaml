@@ -20,3 +20,7 @@ framework:
             cache.tcgdex:
                 adapter: cache.app
                 default_lifetime: 86400
+            # Scans in progress (crops, proposals, choices): gone after an hour without activity.
+            cache.scan:
+                adapter: cache.app
+                default_lifetime: 3600

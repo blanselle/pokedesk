@@ -20,7 +20,7 @@ En tant qu'**utilisateur**, je veux choisir la langue des cartes puis envoyer un
 
 Critères d'acceptation :
 - La langue est obligatoire et choisie avant l'envoi ; elle est mémorisée comme valeur par défaut au scan suivant.
-- Formats d'image courants acceptés (JPEG, PNG, WebP, HEIC si possible) ; autres formats, taille excessive ou résolution insuffisante refusés avec un message clair.
+- Formats d'image courants acceptés (JPEG, PNG, WebP, HEIC si possible) ; autres formats, taille excessive (40 Mo maximum) ou résolution insuffisante refusés avec un message clair.
 - L'écran est utilisable sur mobile, avec prise de photo directe depuis le navigateur.
 - Les métadonnées de l'image (EXIF, dont la géolocalisation) ne sont pas conservées.
 - La recherche de candidats est limitée au catalogue de la langue choisie.
@@ -40,7 +40,7 @@ Chaque carte est détectée, découpée, redressée et son orientation normalis�
 Critères d'acceptation :
 - Les quatre coins de chaque carte sont localisés et chaque carte est découpée individuellement, avant toute vectorisation.
 - Les marges autour de la carte sont supprimées et la carte est redimensionnée à une taille standard.
-- Une carte tournée de 180° est traitée comme les autres.
+- Une carte tournée de 180° est traitée comme les autres ; sa découpe est affichée à l'endroit à l'écran de sélection.
 - Une carte posée face cachée (dos visible) n'est jamais associée à une référence : elle est non reconnue.
 - Le même prétraitement est appliqué aux images catalogue (cf. US-1.3).
 - Les zones qui ne sont pas des cartes sont ignorées.
@@ -51,10 +51,10 @@ Critères d'acceptation :
 Les références les plus proches de chaque carte découpée sont recherchées afin d'être proposées à l'utilisateur.
 
 Critères d'acceptation :
-- Chaque carte découpée est vectorisée individuellement, puis comparée au catalogue.
+- Chaque carte découpée est vectorisée individuellement (telle quelle et retournée de 180°), puis comparée au catalogue ; le meilleur score de chaque référence est retenu.
 - Jusqu'à 5 candidats par carte, triés par similarité décroissante, issus du catalogue de la langue choisie.
 - Les cartes marquées obsolètes ou exclues du scan ne sont pas proposées.
-- Un candidat dont la similarité est sous un seuil configurable n'est pas proposé ; une carte sans candidat est non reconnue.
+- Un candidat dont la similarité est sous un seuil configurable (0,70 à titre provisoire) n'est pas proposé ; une carte sans candidat est non reconnue.
 - Chaque candidat expose : image, nom, extension, numéro, rareté, langue.
 
 ## US-2.6 Suivre le traitement et gérer les pannes — S
@@ -118,7 +118,7 @@ En tant qu'**utilisateur**, je veux que mes photos ne soient pas conservées au-
 
 Critères d'acceptation :
 - L'image envoyée, les découpes et les choix en cours n'existent que le temps du scan.
-- Ils sont supprimés à la validation finale, à l'abandon (nouveau scan, déconnexion, départ de l'application) et après une inactivité dépassant une durée configurable.
+- Ils sont supprimés à la validation finale, à l'abandon (nouveau scan, déconnexion, départ de l'application) et après une inactivité dépassant une durée configurable (1 heure par défaut).
 - Aucun historique de scan, aucune liste de scans, aucune reprise ni annulation.
 - Seul l'utilisateur propriétaire peut accéder à ses images temporaires, via des adresses non devinables et un contrôle d'accès.
 - Un seul scan actif par utilisateur : en lancer un nouveau remplace le précédent, avec un avertissement si un scan est en cours.
@@ -147,3 +147,4 @@ Critères d'acceptation :
 - Jeu de photos de test étiqueté.
 - Rapport : taux de bonne référence en première position et dans les 5 candidats, cas d'échec, effet du seuil de similarité.
 - Seuil d'acceptation défini et décision go / no-go tracée.
+- Résultat : CLIP ViT-B/32 (512 dimensions) est retenu face à DINOv2 small et base ; le seuil de similarité reste à calibrer sur des photos réelles.
