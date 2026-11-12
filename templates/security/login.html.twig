@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block body %}
+    <div class="auth-card mx-auto">
+        <h1 class="h3 mb-4">Connexion</h1>
+
+        {% if error %}
+            <div class="alert alert-danger" role="alert">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+        {% endif %}
+
+        <form method="post">
+            <div class="mb-3">
+                <label for="username" class="form-label">Adresse email</label>
+                <input type="email" id="username" name="_username" value="{{ last_username }}" class="form-control" autocomplete="email" required autofocus>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Mot de passe</label>
+                <input type="password" id="password" name="_password" class="form-control" autocomplete="current-password" required>
+            </div>
+            <div class="form-check mb-3">
+                <input type="checkbox" id="remember_me" name="_remember_me" class="form-check-input">
+                <label for="remember_me" class="form-check-label">Se souvenir de moi</label>
+            </div>
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+            <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+        </form>
+
+        <ul class="list-unstyled mt-4 small">
+            <li><a href="{{ path('app_forgot_password_request') }}">Mot de passe oublié ?</a></li>
+            <li><a href="{{ path('app_register') }}">Créer un compte</a></li>
+            <li><a href="{{ path('app_verify_email_resend') }}">Renvoyer l'email de confirmation</a></li>
+        </ul>
+    </div>
+{% endblock %}

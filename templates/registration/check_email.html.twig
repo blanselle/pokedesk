@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Vérifiez votre boîte mail{% endblock %}
+
+{% block body %}
+    <div class="auth-card mx-auto">
+        <h1 class="h3 mb-4">Vérifiez votre boîte mail</h1>
+
+        <p>Si l'adresse saisie peut être utilisée, un email de confirmation vient de vous être envoyé. Cliquez sur le lien qu'il contient pour activer votre compte.</p>
+        <p class="small"><a href="{{ path('app_verify_email_resend') }}">Je n'ai rien reçu</a> · <a href="{{ path('app_login') }}">Retour à la connexion</a></p>
+    </div>
+{% endblock %}

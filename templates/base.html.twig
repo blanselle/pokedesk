@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}Pokédesk{% endblock %} · Pokédesk</title>
+        {% block stylesheets %}{% endblock %}
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+    </head>
+    <body class="bg-body-tertiary">
+        <nav class="navbar navbar-expand bg-body border-bottom mb-4">
+            <div class="container">
+                <a class="navbar-brand" href="{{ path('app_home') }}">Pokédesk</a>
+                <ul class="navbar-nav ms-auto align-items-center">
+                    {% if is_granted('IS_AUTHENTICATED') %}
+                        <li class="nav-item"><span class="navbar-text me-3">{{ app.user.userIdentifier }}</span></li>
+                        <li class="nav-item"><a class="btn btn-outline-secondary btn-sm" href="{{ logout_path() }}">Se déconnecter</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{{ path('app_login') }}">Connexion</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ path('app_register') }}">Créer un compte</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+
+        <main class="container pb-5">
+            {% for type, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ type }}" role="alert">{{ message }}</div>
+                {% endfor %}
+            {% endfor %}
+
+            {% block body %}{% endblock %}
+        </main>
+    </body>
+</html>

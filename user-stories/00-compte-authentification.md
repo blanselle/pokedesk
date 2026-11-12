@@ -10,20 +10,20 @@ En tant que **visiteur**, je veux créer un compte afin d'accéder à ma collect
 
 Critères d'acceptation :
 - Formulaire d'inscription : email, mot de passe, confirmation du mot de passe.
-- L'email doit être valide et unique ; message clair en cas de doublon (sans faciliter l'énumération des comptes si possible).
-- Règles de robustesse du mot de passe affichées et appliquées (longueur minimale, refus des mots de passe compromis ou trop courants).
+- L'email doit être valide et unique ; en cas de doublon, la réponse affichée est identique à une inscription réussie et un email prévient le titulaire de l'adresse, pour ne pas révéler quels comptes existent.
+- Règles de robustesse du mot de passe affichées et appliquées (12 caractères minimum, refus des mots de passe compromis).
 - Le mot de passe est stocké haché, jamais en clair.
-- Protection contre les soumissions automatisées (CSRF, limitation de débit).
-- Après inscription : un email de vérification est envoyé (cf. US-0.2), puis l'utilisateur est redirigé vers la connexion ou sa collection selon la politique retenue.
+- Protection contre les soumissions automatisées (CSRF, limitation du nombre d'emails déclenchés par client).
+- Après inscription : un email de confirmation est envoyé (cf. US-0.2) et une page invite l'utilisateur à consulter sa boîte mail.
 
-## US-0.2 Vérifier son adresse email — S
+## US-0.2 Vérifier son adresse email — M
 
 L'application vérifie l'adresse email d'un nouveau compte afin de limiter les comptes frauduleux et garantir le fonctionnement de la réinitialisation.
 
 Critères d'acceptation :
 - Un lien de vérification signé et à durée limitée est envoyé par email.
 - Un lien expiré ou invalide affiche un message clair et permet de redemander un email.
-- Un compte non vérifié peut être limité (à définir : accès bloqué ou fonctionnalités restreintes).
+- La connexion est refusée tant que l'adresse n'est pas confirmée, avec un message explicite (affiché uniquement si le mot de passe est correct).
 
 ## US-0.3 Se connecter — M
 

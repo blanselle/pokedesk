@@ -1,0 +1,12 @@
+framework:
+    rate_limiter:
+        email_sending:
+            policy: sliding_window
+            limit: 10
+            interval: '1 hour'
+
+when@test:
+    framework:
+        rate_limiter:
+            email_sending:
+                policy: no_limit

@@ -1,0 +1,9 @@
+<h1>Réinitialisation de votre mot de passe</h1>
+
+<p>Vous avez demandé à réinitialiser votre mot de passe Pokédesk. Cliquez sur le lien ci-dessous pour en choisir un nouveau :</p>
+
+<p><a href="{{ url('app_reset_password', {token: resetToken.token}) }}">Choisir un nouveau mot de passe</a></p>
+
+<p>Ce lien est valable {{ lifetimeMinutes }} minutes.</p>
+
+<p>Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email : votre mot de passe reste inchangé.</p>

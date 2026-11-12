@@ -58,6 +58,7 @@ Le scan ne dure que tant que l'utilisateur reste dans l'application : s'il quitt
 - Les prix de revente issus de l'API TCGdex sont conservés en base ; ils ne sont pas exposés aux utilisateurs pour l'instant.
 - L'interface est en français ; le nom d'une carte est affiché dans la langue de la carte.
 - L'utilisateur garde la décision finale : le moteur propose, l'humain valide.
+- La connexion est refusée tant que l'adresse email n'est pas confirmée. Un changement de mot de passe par lien reçu par email confirme aussi l'adresse.
 - Le rôle administrateur est attribué par une commande console prenant l'email d'un compte existant ; aucune interface web ne le permet.
 - Un administrateur a aussi son propre stock, mais ne voit pas ceux des autres utilisateurs.
 - Les champs importés de TCGdex sont en lecture seule, même pour l'administrateur ; il peut seulement exclure une carte du scan, recalculer son embedding ou retélécharger son image.
@@ -90,7 +91,7 @@ Reporté :
 ## Questions ouvertes
 
 1. Modèle de vectorisation et dimension : DINOv2 (small, base ou large) à comparer avec une alternative lors du benchmark.
-2. Vérification d'email obligatoire pour accéder au stock ? Durée de validité des liens de réinitialisation ?
+2. Durée de validité des liens de confirmation d'email (1 heure par défaut).
 3. Langues du catalogue importées : toutes celles de TCGdex, ou une liste restreinte (FR, EN, JP) ?
 4. Seuil de similarité en dessous duquel aucun candidat n'est proposé : à calibrer par benchmark.
 5. Nombre maximal de cartes par photo (20 au départ) : bloquant ou simple avertissement au-delà ?

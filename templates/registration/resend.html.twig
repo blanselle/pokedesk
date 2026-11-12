@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Renvoyer l'email de confirmation{% endblock %}
+
+{% block body %}
+    <div class="auth-card mx-auto">
+        <h1 class="h3 mb-4">Renvoyer l'email de confirmation</h1>
+
+        {{ form_start(form) }}
+            {{ form_widget(form) }}
+            <button type="submit" class="btn btn-primary w-100">Envoyer</button>
+        {{ form_end(form) }}
+
+        <p class="mt-4 small"><a href="{{ path('app_login') }}">Retour à la connexion</a></p>
+    </div>
+{% endblock %}
