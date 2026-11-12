@@ -79,6 +79,47 @@ p-update: ## Update project
 	make cinstall
 	make migrate
 
+## —— Catalogue ————————————————————————————————————————————————————————————————
+# Parameters, all optional, passed as `make catalog-import NAME=value`:
+#   CATALOG_LANGS      Languages to import, space separated (e.g. "fr en ja"). Default: fr en.
+#   CATALOG_SETS       Only import these TCGdex set ids, space separated (e.g. "base1 base2").
+#                      Default: every set.
+#   CATALOG_LIMIT      Maximum number of cards imported per language. Default: no limit.
+#   CATALOG_NO_IMAGES  Any value (e.g. 1) skips the card image downloads. Default: images are downloaded.
+#   CATALOG_REFRESH    Any value (e.g. 1) ignores the 24h cache of TCGdex answers. Default: cache is used.
+# A run with CATALOG_SETS or CATALOG_LIMIT is partial: cards missing from the API are not marked obsolete.
+# Examples:
+#   make catalog-import
+#   make catalog-import CATALOG_LANGS=fr CATALOG_SETS="base1 base2" CATALOG_LIMIT=50 CATALOG_NO_IMAGES=1
+CATALOG_LANGS ?=
+CATALOG_SETS ?=
+CATALOG_LIMIT ?=
+CATALOG_NO_IMAGES ?=
+CATALOG_REFRESH ?=
+
+catalog-import: ## Import the TCGdex catalogue (parameters: see comments above)
+	$(SYMFONY) app:catalog:import \
+		$(foreach lang,$(CATALOG_LANGS),--lang=$(lang)) \
+		$(foreach set,$(CATALOG_SETS),--set=$(set)) \
+		$(if $(CATALOG_LIMIT),--limit=$(CATALOG_LIMIT)) \
+		$(if $(CATALOG_NO_IMAGES),--no-images) \
+		$(if $(CATALOG_REFRESH),--refresh)
+
+## —— Users ————————————————————————————————————————————————————————————————————
+# Parameters, passed as `make user-promote-admin NAME=value`:
+#   ADMIN_EMAIL   Required. Email of an existing account (it is never created).
+#   ADMIN_REVOKE  Any value (e.g. 1) removes the administrator role instead of granting it.
+# Examples:
+#   make user-promote-admin ADMIN_EMAIL=me@example.com
+#   make user-promote-admin ADMIN_EMAIL=me@example.com ADMIN_REVOKE=1
+ADMIN_EMAIL ?=
+ADMIN_REVOKE ?=
+
+user-promote-admin: ## Grant (or revoke) the administrator role of an existing user (parameters: see comments above)
+	$(if $(ADMIN_EMAIL),,$(error ADMIN_EMAIL is required, e.g. make user-promote-admin ADMIN_EMAIL=me@example.com))
+	$(SYMFONY) app:user:promote-admin $(ADMIN_EMAIL) $(if $(ADMIN_REVOKE),--revoke)
+
+
 
 
 ## —— Envs ——————————————————————————————————————————————————————————————————

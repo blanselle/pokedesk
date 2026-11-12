@@ -15,6 +15,9 @@
                 <a class="navbar-brand" href="{{ path('app_home') }}">Pokédesk</a>
                 <ul class="navbar-nav ms-auto align-items-center">
                     {% if is_granted('IS_AUTHENTICATED') %}
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <li class="nav-item"><a class="nav-link" href="{{ path('admin_cards') }}">Administration</a></li>
+                        {% endif %}
                         <li class="nav-item"><span class="navbar-text me-3">{{ app.user.userIdentifier }}</span></li>
                         <li class="nav-item"><a class="btn btn-outline-secondary btn-sm" href="{{ logout_path() }}">Se déconnecter</a></li>
                     {% else %}

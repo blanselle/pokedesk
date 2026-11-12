@@ -1,0 +1,26 @@
+<div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 mb-4">
+    {% for card in cards %}
+        <div class="col">
+            <a href="{{ path('admin_card_show', {id: card.id}) }}" class="card h-100 text-decoration-none card-hover{{ card.status.value == 'obsolete' ? ' opacity-75' : '' }}">
+                {# Fixed ratio (card artwork is about 5:7) so the grid does not jump while images load. #}
+                <div class="ratio card-ratio">
+                    {% if card.imagePath %}
+                        <img src="{{ path('admin_card_image', {id: card.id}) }}" alt="{{ card.name }}" class="card-img-top" loading="lazy">
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center bg-body-secondary text-body-secondary small">Sans image</div>
+                    {% endif %}
+                </div>
+                <div class="card-body p-2">
+                    <div class="fw-semibold text-body text-truncate" title="{{ card.name }}">{{ card.name }}</div>
+                    <div class="small text-body-secondary text-truncate" title="{{ card.set.name }}">{{ card.set.name }} · n° {{ card.localId }}</div>
+                    <div class="mt-1 d-flex flex-wrap gap-1">
+                        <span class="badge text-bg-light border text-uppercase">{{ card.language }}</span>
+                        {% if card.rarity %}<span class="badge text-bg-light border">{{ card.rarity }}</span>{% endif %}
+                        {% if card.status.value == 'obsolete' %}<span class="badge text-bg-secondary">Obsolète</span>{% endif %}
+                        {% if card.excludedFromScan %}<span class="badge text-bg-danger">Exclue du scan</span>{% endif %}
+                    </div>
+                </div>
+            </a>
+        </div>
+    {% endfor %}
+</div>

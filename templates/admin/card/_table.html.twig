@@ -1,0 +1,41 @@
+<div class="table-responsive">
+    <table class="table table-hover align-middle bg-body">
+        <thead>
+            <tr>
+                <th scope="col"></th>
+                <th scope="col">Nom</th>
+                <th scope="col">Extension</th>
+                <th scope="col">N°</th>
+                <th scope="col">Rareté</th>
+                <th scope="col">Langue</th>
+                <th scope="col">Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for card in cards %}
+                <tr>
+                    <td style="width: 4rem">
+                        {% if card.imagePath %}
+                            <img src="{{ path('admin_card_image', {id: card.id}) }}" alt="" width="40" class="rounded" loading="lazy">
+                        {% else %}
+                            <span class="badge text-bg-warning" title="Aucune image locale">Sans image</span>
+                        {% endif %}
+                    </td>
+                    <td><a href="{{ path('admin_card_show', {id: card.id}) }}">{{ card.name }}</a></td>
+                    <td>{{ card.set.name }} <small class="text-body-secondary">{{ card.set.tcgdexId }}</small></td>
+                    <td>{{ card.localId }}</td>
+                    <td>{{ card.rarity ?? '—' }}</td>
+                    <td class="text-uppercase">{{ card.language }}</td>
+                    <td>
+                        {% if card.status.value == 'active' %}
+                            <span class="badge text-bg-success">Active</span>
+                        {% else %}
+                            <span class="badge text-bg-secondary">Obsolète</span>
+                        {% endif %}
+                        {% if card.excludedFromScan %}<span class="badge text-bg-danger">Exclue du scan</span>{% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

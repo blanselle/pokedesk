@@ -1,3 +1,22 @@
 .auth-card {
     max-width: 28rem;
 }
+
+/* Card artwork is about 5:7. */
+.card-ratio {
+    --bs-aspect-ratio: 140%;
+}
+
+.card-hover {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.zoomable {
+    cursor: zoom-in;
+}
+
+.card-hover:hover,
+.card-hover:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: var(--bs-box-shadow);
+}

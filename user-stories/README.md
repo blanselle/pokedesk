@@ -74,6 +74,7 @@ Le scan ne dure que tant que l'utilisateur reste dans l'application : s'il quitt
 - Application mobile native.
 - État, prix d'achat, date d'achat, source, emplacement, lots d'acquisition, variantes.
 - Accès de l'administrateur aux stocks des utilisateurs, modification manuelle des champs importés de TCGdex.
+- Cartes numériques Pokémon TCG Pocket (série TCGdex `tcgp`) : exclues de l'import, supprimées du catalogue.
 
 Reporté :
 - Recours pour les cartes non reconnues (recherche manuelle, ajout depuis le catalogue, consultation du catalogue).

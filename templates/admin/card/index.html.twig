@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cartes importées{% endblock %}
+
+{% block body %}
+    {% set query = app.request.query.all %}
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div class="d-flex align-items-baseline gap-3">
+            <h1 class="h3 mb-0">Cartes importées</h1>
+            <span class="text-body-secondary">{{ total|number_format(0, ',', ' ') }} carte{{ total > 1 ? 's' : '' }}</span>
+        </div>
+
+        <div class="btn-group" role="group" aria-label="Mode d'affichage">
+            <a href="{{ path('admin_cards', query|merge({view: 'table'})) }}" class="btn btn-outline-secondary btn-sm{{ view == 'table' ? ' active' : '' }}"{{ view == 'table' ? ' aria-current="true"' : '' }}>Liste</a>
+            <a href="{{ path('admin_cards', query|merge({view: 'grid'})) }}" class="btn btn-outline-secondary btn-sm{{ view == 'grid' ? ' active' : '' }}"{{ view == 'grid' ? ' aria-current="true"' : '' }}>Cartes</a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            {{ form_start(form, {attr: {class: 'row g-3 align-items-end'}}) }}
+                <div class="col-md-4">{{ form_row(form.q) }}</div>
+                <div class="col-md-2">{{ form_row(form.language) }}</div>
+                <div class="col-md-3">{{ form_row(form.extension) }}</div>
+                <div class="col-md-1">{{ form_row(form.number) }}</div>
+                <div class="col-md-2">{{ form_row(form.rarity) }}</div>
+                <div class="col-md-2">{{ form_row(form.status) }}</div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label for="per_page" class="form-label">Par page</label>
+                        <select id="per_page" name="per_page" class="form-select">
+                            {% for choice in per_page_choices %}
+                                <option value="{{ choice }}"{{ choice == per_page ? ' selected' : '' }}>{{ choice }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3 pt-md-4">{{ form_row(form.missingImage) }}</div>
+                </div>
+                <div class="col-md-3 text-md-end">
+                    <div class="mb-3">
+                        <a href="{{ path('admin_cards') }}" class="btn btn-outline-secondary">Réinitialiser</a>
+                        <button type="submit" class="btn btn-primary">Filtrer</button>
+                    </div>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+
+    {% if total == 0 %}
+        <div class="alert alert-info">Aucune carte ne correspond à ces critères.</div>
+    {% else %}
+        {% include view == 'grid' ? 'admin/card/_grid.html.twig' : 'admin/card/_table.html.twig' %}
+
+        {% include 'admin/card/_pagination.html.twig' %}
+    {% endif %}
+{% endblock %}

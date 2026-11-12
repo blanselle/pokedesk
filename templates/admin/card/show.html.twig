@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ card.name }}{% endblock %}
+
+{% block body %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('admin_cards') }}">Cartes importées</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ card.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-md-4 col-lg-3">
+            {% if card.imagePath %}
+                <button type="button" class="btn p-0 border-0 zoomable" data-bs-toggle="modal" data-bs-target="#card-image-modal" aria-label="Agrandir l'image de {{ card.name }}">
+                    <img src="{{ path('admin_card_image', {id: card.id}) }}" alt="{{ card.name }}" class="img-fluid rounded shadow-sm">
+                </button>
+
+                <div class="modal fade" id="card-image-modal" tabindex="-1" aria-label="{{ card.name }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content bg-transparent border-0">
+                            <img src="{{ path('admin_card_image', {id: card.id}) }}" alt="{{ card.name }}" class="mx-auto rounded-4 shadow-lg mw-100" style="max-height: 90vh" data-bs-dismiss="modal" role="button">
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-warning">Aucune image locale pour cette carte.</div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-8 col-lg-9">
+            <h1 class="h3">
+                {{ card.name }}
+                {% if card.status.value == 'active' %}
+                    <span class="badge text-bg-success fs-6">Active</span>
+                {% else %}
+                    <span class="badge text-bg-secondary fs-6">Obsolète</span>
+                {% endif %}
+                {% if card.excludedFromScan %}<span class="badge text-bg-danger fs-6">Exclue du scan</span>{% endif %}
+            </h1>
+
+            <dl class="row">
+                <dt class="col-sm-4">Identifiant TCGdex</dt><dd class="col-sm-8">{{ card.tcgdexId }}</dd>
+                <dt class="col-sm-4">Langue</dt><dd class="col-sm-8 text-uppercase">{{ card.language }}</dd>
+                <dt class="col-sm-4">Extension</dt><dd class="col-sm-8">{{ card.set.name }} <small class="text-body-secondary">({{ card.set.tcgdexId }}{% if card.set.serieName %}, série {{ card.set.serieName }}{% endif %})</small></dd>
+                <dt class="col-sm-4">Numéro</dt><dd class="col-sm-8">{{ card.localId }}{% if card.set.cardCountTotal %} / {{ card.set.cardCountTotal }}{% endif %}</dd>
+                <dt class="col-sm-4">Rareté</dt><dd class="col-sm-8">{{ card.rarity ?? '—' }}</dd>
+                <dt class="col-sm-4">Catégorie</dt><dd class="col-sm-8">{{ card.category ?? '—' }}</dd>
+                <dt class="col-sm-4">Image locale</dt><dd class="col-sm-8">{{ card.imagePath ?? '—' }}</dd>
+                <dt class="col-sm-4">Premier import</dt><dd class="col-sm-8">{{ card.createdAt|date('d/m/Y H:i') }}</dd>
+                <dt class="col-sm-4">Dernier import</dt><dd class="col-sm-8">{{ card.lastSeenAt|date('d/m/Y H:i') }}</dd>
+            </dl>
+
+            {% if other_languages is not empty %}
+                <h2 class="h6">Autres langues</h2>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for other in other_languages %}
+                        <a href="{{ path('admin_card_show', {id: other.id}) }}" class="btn btn-outline-primary btn-sm">
+                            <span class="text-uppercase fw-semibold">{{ other.language }}</span>
+                            · {{ other.name }}
+                            <small class="text-body-secondary">{{ other.set.name }}</small>
+                            {% if not other.imagePath %}<span class="badge text-bg-warning">Sans image</span>{% endif %}
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% set variants = card.payload.variants_detailed|default([]) %}
+    {% if variants is not empty %}
+        <h2 class="h5 mt-4">Variantes et prix de référence</h2>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle bg-body">
+                <thead>
+                    <tr>
+                        <th scope="col">Variante</th>
+                        <th scope="col">Cardmarket moyen</th>
+                        <th scope="col">Bas</th>
+                        <th scope="col">Tendance</th>
+                        <th scope="col">Mis à jour</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for variant in variants %}
+                        {% set market = variant.pricing.cardmarket|default(null) %}
+                        <tr>
+                            <td>{{ variant.type|default('—') }}{% if variant.subtype|default(null) %} <small class="text-body-secondary">{{ variant.subtype }}</small>{% endif %}</td>
+                            {% if market %}
+                                <td>{{ market.avg|default('—') }} {{ market.unit|default('') }}</td>
+                                <td>{{ market.low|default('—') }}</td>
+                                <td>{{ market.trend|default('—') }}</td>
+                                <td>{{ market.updated|default(null) ? market.updated|date('d/m/Y H:i') : '—' }}</td>
+                            {% else %}
+                                <td colspan="4" class="text-body-secondary">Pas de prix Cardmarket</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    <details class="mt-4">
+        <summary>Données brutes TCGdex</summary>
+        <pre class="bg-body border rounded p-3 mt-2 small">{{ card.payload|json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE') b-or constant('JSON_UNESCAPED_SLASHES')) }}</pre>
+    </details>
+{% endblock %}

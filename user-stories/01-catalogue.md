@@ -11,10 +11,12 @@ En tant qu'**opérateur**, je veux lancer une commande qui récupère l'ensemble
 Critères d'acceptation :
 - Une commande console importe les extensions et toutes leurs cartes.
 - L'import s'exécute en arrière-plan : la commande déclenche le traitement et ne bloque pas jusqu'à la fin.
-- Options : restreindre à une langue ou une extension, limiter le nombre de cartes.
+- Options : langue(s), extension(s), nombre maximal de cartes, sans images, rafraîchissement du cache.
+- Les réponses de l'API sont mises en cache 24 h (l'API interdit elle-même la mise en cache HTTP) afin de ne pas la solliciter inutilement ; l'option de rafraîchissement ignore ce cache.
 - Pour chaque carte, quand la source les fournit : identifiant TCGdex stable, nom, extension, identifiant de série, numéro, rareté, langue, illustration.
 - La commande est idempotente : la relancer met à jour les cartes existantes et ajoute les nouvelles, sans doublon.
 - Une référence est une carte dans une seule langue : un enregistrement catalogue par couple (identifiant TCGdex, langue). La même carte dans une autre langue est une autre référence.
+- Les cartes numériques de Pokémon TCG Pocket (série TCGdex `tcgp`) ne sont jamais importées, même si l'une de leurs extensions est demandée explicitement ; le rapport indique combien d'extensions ont été ignorées.
 - Une carte présente en base mais absente de l'API après un import est marquée obsolète, jamais supprimée : elle reste dans les stocks existants, n'est plus proposée comme candidat, et redevient active si elle réapparaît dans l'API.
 - Les erreurs de source sont journalisées sans interrompre l'import ; un rapport final indique cartes créées, mises à jour et en erreur.
 

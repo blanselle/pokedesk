@@ -1,0 +1,22 @@
+{% if page_count > 1 %}
+    {% set query = app.request.query.all %}
+    <nav aria-label="Pagination">
+        <ul class="pagination justify-content-center flex-wrap">
+            <li class="page-item{{ page <= 1 ? ' disabled' : '' }}">
+                <a class="page-link" href="{{ path('admin_cards', query|merge({page: max(page - 1, 1)})) }}">Précédent</a>
+            </li>
+            {% for p in 1..page_count %}
+                {% if p == 1 or p == page_count or (p - page)|abs <= 2 %}
+                    <li class="page-item{{ p == page ? ' active' : '' }}">
+                        <a class="page-link" href="{{ path('admin_cards', query|merge({page: p})) }}"{{ p == page ? ' aria-current="page"' : '' }}>{{ p }}</a>
+                    </li>
+                {% elseif (p - page)|abs == 3 %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item{{ page >= page_count ? ' disabled' : '' }}">
+                <a class="page-link" href="{{ path('admin_cards', query|merge({page: min(page + 1, page_count)})) }}">Suivant</a>
+            </li>
+        </ul>
+    </nav>
+{% endif %}

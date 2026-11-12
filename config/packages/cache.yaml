@@ -15,5 +15,8 @@ framework:
         #app: cache.adapter.apcu
 
         # Namespaced pools use the above "app" backend by default
-        #pools:
-            #my.dedicated.cache: null
+        pools:
+            # TCGdex answers carry no-store headers, so responses are cached here for 24h instead.
+            cache.tcgdex:
+                adapter: cache.app
+                default_lifetime: 86400
